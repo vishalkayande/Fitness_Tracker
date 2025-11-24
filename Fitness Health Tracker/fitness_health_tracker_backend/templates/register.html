@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Fitness Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar container">
+            <a class="logo" href="{{ url_for('index') }}">Fitness<span>Tracker</span></a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a class="btn btn-secondary" href="{{ url_for('login') }}">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="auth-wrapper">
+        <div class="auth-container">
+            <h2>Create your account</h2>
+            <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+                <label>Full Name</label>
+                <input type="text" name="name" placeholder="Your name" required>
+
+                <label>Email</label>
+                <input type="email" name="email" placeholder="you@example.com" required>
+
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Create a password" required>
+
+                <label>Age (years)</label>
+                <input type="number" name="age" placeholder="e.g., 25" min="1" max="120" required>
+
+                <label>Height (cm)</label>
+                <input type="number" name="height" placeholder="e.g., 175" min="50" max="250" step="0.1" required>
+
+                <label>Weight (kg)</label>
+                <input type="number" name="weight" placeholder="e.g., 80" min="20" max="300" step="0.1" required>
+
+                <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+            </form>
+            <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+        </div>
+    </main>
+</body>
+</html>

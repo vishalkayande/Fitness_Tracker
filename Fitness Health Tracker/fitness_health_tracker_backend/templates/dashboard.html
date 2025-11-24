@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Fitness Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-body">
+    <div class="app-layout">
+        <aside class="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">✚</div>
+                <div>
+                    <p class="brand-title">FitCare</p>
+                    <small>Health Companion</small>
+                </div>
+            </div>
+            <nav>
+                <ul class="sidebar-nav">
+                    <li class="active"><a href="{{ url_for('dashboard') }}"><span>Dashboard</span></a></li>
+                    <li><a href="{{ url_for('entries') }}"><span>All Entries</span></a></li>
+                    <li><a href="#my-goals"><span>My Goals</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-user">
+                <div class="sidebar-avatar">{{ user_name[:1]|upper }}</div>
+                <div>
+                    <p>{{ user_name }}</p>
+                    <small>Active member</small>
+                </div>
+                <a class="sidebar-logout" href="{{ url_for('logout') }}">↺</a>
+            </div>
+        </aside>
+
+        <main class="app-main">
+            <header class="topbar">
+                <div>
+                    <p class="muted">Today · {{ today_food_count }} logs</p>
+                    <h1>Welcome back, {{ user_name }} 👋</h1>
+                </div>
+                <div class="topbar-actions">
+                    <div class="topbar-usercard">
+                        <div class="avatar">{{ user_name[:1]|upper }}</div>
+                        <div>
+                            <strong>{{ user_name }}</strong>
+                            <small>Premium plan</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <p class="muted">Calories in</p>
+                    <h2>{{ today_total_calories or 0 }}</h2>
+                    <span>Logged meals today</span>
+                </div>
+                <div class="stat-card">
+                    <p class="muted">Calories burned</p>
+                    <h2>{{ today_burned or 0 }}</h2>
+                    <span>From exercises</span>
+                </div>
+                <div class="stat-card">
+                    <p class="muted">Net balance</p>
+                    <h2>{{ today_net or 0 }}</h2>
+                    <span>Calories in - out</span>
+                </div>
+                <div class="stat-card">
+                    <p class="muted">CO₂ saved</p>
+                    <h2>{{ '{:.2f}'.format(today_co2_saved or 0) }}kg</h2>
+                    <span>Walking impact</span>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="grid-left">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Weekly overview</h3>
+                                <p class="muted">Past 7 days snapshot</p>
+                            </div>
+                            <div class="chip {{ 'positive' if weekly_summary.calorie_balance < 0 else '' }}">
+                                Balance {{ weekly_summary.calorie_balance }}
+                            </div>
+                        </div>
+                        <div class="summary-row">
+                            <div>
+                                <small>Calories eaten</small>
+                                <strong>{{ weekly_summary.calories_in }}</strong>
+                                <span>{{ weekly_summary.average_in }} avg</span>
+                            </div>
+                            <div>
+                                <small>Calories burned</small>
+                                <strong>{{ weekly_summary.calories_burned }}</strong>
+                                <span>{{ weekly_summary.average_burned }} avg</span>
+                            </div>
+                            <div>
+                                <small>Minutes active</small>
+                                <strong>{{ weekly_summary.minutes }}</strong>
+                                <span>{{ weekly_summary.days_active }} active days</span>
+                            </div>
+                            <div>
+                                <small>Sessions</small>
+                                <strong>{{ weekly_summary.sessions }}</strong>
+                                <span>{{ weekly_summary.distance }} km</span>
+                            </div>
+                        </div>
+                        {% if weekly_report %}
+                        <div class="table-wrap">
+                            <table class="table table-compact">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>In</th>
+                                        <th>Burned</th>
+                                        <th>Minutes</th>
+                                        <th>Sessions</th>
+                                        <th>Exercises</th>
+                                        <th>Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for entry in weekly_report %}
+                                    <tr>
+                                        <td>{{ entry.date_label }}</td>
+                                        <td>{{ entry.calories_in }}</td>
+                                        <td>{{ entry.calories_out }}</td>
+                                        <td>{{ entry.exercise_minutes }}</td>
+                                        <td>{{ entry.sessions }}</td>
+                                        <td>
+                                            {% if entry.exercises %}
+                                            <div class="exercise-tags">
+                                                {% for exercise in entry.exercises %}
+                                                <span class="tag">
+                                                    <strong>{{ exercise.activity }}</strong>
+                                                    <small>
+                                                        {% if exercise.duration %}{{ exercise.duration }} min{% endif %}
+                                                        {% if exercise.calories_burned %} · {{ exercise.calories_burned }} kcal{% endif %}
+                                                    </small>
+                                                </span>
+                                                {% endfor %}
+                                            </div>
+                                            {% else %}
+                                            <span class="muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ entry.distance }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="muted">No activity tracked yet. Log meals or workouts to see insights.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Recent foods</h3>
+                                <p class="muted">Latest {{ recent_foods|length if recent_foods else 0 }} entries</p>
+                            </div>
+                            <a class="link" href="{{ url_for('entries') }}">View all</a>
+                        </div>
+                        {% if recent_foods and recent_foods|length > 0 %}
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Food</th>
+                                        <th>Qty</th>
+                                        <th>Calories</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for f in recent_foods %}
+                                    <tr>
+                                        <td>{{ f.food_name }}</td>
+                                        <td>{{ f.quantity or 1 }}</td>
+                                        <td>{{ f.calories }}</td>
+                                        <td>{{ f.created_at_display }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="muted">No foods logged yet. Start by adding one!</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid-right">
+                    <div class="panel form-panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Quick add</h3>
+                                <p class="muted">Track meals & workouts</p>
+                            </div>
+                        </div>
+                        <form class="inline-form food-form" method="POST" action="{{ url_for('add_food') }}">
+                            <input type="text" name="food_name" placeholder="Fruit name (e.g., apple)" required>
+                            <input type="number" name="quantity" min="1" value="1" placeholder="Qty" required>
+                            <button type="submit" class="btn btn-primary">Add meal</button>
+                        </form>
+                        <form class="inline-form" method="POST" action="{{ url_for('add_exercise') }}">
+                            <select name="activity" required>
+                                <option value="Walking">Walking</option>
+                                <option value="Running">Running</option>
+                                <option value="Swimming">Swimming</option>
+                                <option value="Cycling">Cycling</option>
+                                <option value="Jogging">Jogging</option>
+                                <option value="Yoga">Yoga</option>
+                                <option value="Weight Lifting">Weight Lifting</option>
+                                <option value="Aerobics">Aerobics</option>
+                                <option value="Tennis">Tennis</option>
+                                <option value="Dancing">Dancing</option>
+                                <option value="Hiking">Hiking</option>
+                            </select>
+                            <input type="number" name="duration" placeholder="Minutes" min="1" required>
+                            <button type="submit" class="btn btn-secondary">Add workout</button>
+                        </form>
+                    </div>
+
+                    <div class="panel gamification-panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Gamification</h3>
+                                <p class="muted">Badges & streaks keep you motivated</p>
+                            </div>
+                            <span class="chip positive">Streak {{ tracking_streak }} days</span>
+                        </div>
+                        <div class="badges-grid">
+                            {% for badge in badges %}
+                            <div class="badge {{ 'earned' if badge.earned else '' }}">
+                                <span class="icon">{{ badge.icon }}</span>
+                                <div>
+                                    <strong>{{ badge.title }}</strong>
+                                    <small>{{ badge.detail }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="panel goals-panel" id="my-goals">
+                        <div class="panel-head">
+                            <div>
+                                <h3>My goals</h3>
+                                <p class="muted">Plan habits, milestones or reminders</p>
+                            </div>
+                        </div>
+                        <textarea id="goals-input" rows="6" placeholder="Write down the routines, calorie targets or mindset shifts you want to focus on..."></textarea>
+                        <div class="goal-actions">
+                            <span id="goals-status" class="muted">Not saved</span>
+                            <button type="button" class="btn btn-primary" id="goals-save">Save goals</button>
+                        </div>
+                    </div>
+
+                    <div class="panel suggestion-panel">
+                        <h3>Suggestions & reminders</h3>
+                        <div class="suggestion-card">
+                            <h4>Motivation</h4>
+                            <p>“{{ ai_suggestions.quote }}”</p>
+                        </div>
+                        {% for tip in smart_suggestions %}
+                        <div class="suggestion-card">
+                            <h4>{{ tip.title }}</h4>
+                            <p>{{ tip.message }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="panel dark-panel">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Today schedule</h3>
+                                <p class="muted">Stay consistent</p>
+                            </div>
+                        </div>
+                        <ul class="schedule-list">
+                            <li>
+                                <div>
+                                    <strong>Morning walk</strong>
+                                    <small>CO₂ saved {{ '{:.2f}'.format(today_co2_saved or 0) }}kg</small>
+                                </div>
+                                <span>07:00</span>
+                            </li>
+                            <li>
+                                <div>
+                                    <strong>Log meals</strong>
+                                    <small>{{ today_food_count }} entries today</small>
+                                </div>
+                                <span>12:30</span>
+                            </li>
+                            <li>
+                                <div>
+                                    <strong>Stretch session</strong>
+                                    <small>Minutes this week {{ weekly_summary.minutes }}</small>
+                                </div>
+                                <span>19:00</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        (function() {
+            const textarea = document.getElementById('goals-input');
+            const saveBtn = document.getElementById('goals-save');
+            const statusEl = document.getElementById('goals-status');
+            if (!textarea || !saveBtn) return;
+            const storageKey = `fitness_goals_{{ user_id }}`;
+
+            function updateStatus(text) {
+                if (statusEl) {
+                    statusEl.textContent = text;
+                }
+            }
+
+            textarea.value = localStorage.getItem(storageKey) || '';
+            if (textarea.value) {
+                updateStatus('Saved locally');
+            }
+
+            saveBtn.addEventListener('click', () => {
+                localStorage.setItem(storageKey, textarea.value.trim());
+                updateStatus('Saved · ' + new Date().toLocaleTimeString());
+            });
+        })();
+    </script>
+</body>
+</html>
