@@ -73,3 +73,4 @@ Use the root requirement.txt for dependency installation.
 MySQL trigger behavior can vary by environment; the repository includes optional fixes.
 License
 Personal/educational use. Adapt as needed for production deployments.
+
